@@ -1,0 +1,9 @@
+*.sdf
+ipch/
+Debug/
+Release/
+wavelet_codec/Debug/
+wavelet_codec/Release/
+*.suo
+wavelet_codec/Wavelet_Codec.vcxproj.user
+
