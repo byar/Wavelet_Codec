@@ -78,6 +78,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="quantizer.cpp" />
     <ClCompile Include="stats.cpp" />
+    <ClCompile Include="test.cpp" />
     <ClCompile Include="waveletlib.cpp" />
   </ItemGroup>
   <ItemGroup>

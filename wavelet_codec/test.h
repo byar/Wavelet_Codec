@@ -1,4 +1,2 @@
-void waveletlib_test()
-{
-
-}
+double UpdateTime();
+void WaveletTest();
