@@ -19,6 +19,30 @@ double UpdateTime()
   return deltaTime;
 }
 
+void print2DArray(double *In,int dim)
+{
+  int i,j;
+  for(i=0;i<dim;++i)
+  {
+    for(j=0;j<dim;j++)
+    {
+      printf("%5.2f ",In[i*dim+j]);
+    }
+    printf("\n");
+  }
+  printf("\n");
+}
+
+void print1DArray(double *In,int dim)
+{
+  int j;
+  for(j=0;j<dim;j++)
+  {
+    printf("%+5.2f ",In[j]);
+  }
+  printf("\n\n");
+}
+
 #define Nlen 512
 #define pi 3.141592653589793
 //extern FilterSet Antonini;

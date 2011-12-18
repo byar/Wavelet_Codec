@@ -43,32 +43,6 @@ static const double G1[] = {
   -3.782845550699535e-02 // 5
 };
 
-
-void print2DArray(double *In,int dim)
-{
-  int i,j;
-  for(i=0;i<dim;++i)
-  {
-    for(j=0;j<dim;j++)
-    {
-      printf("%5.2f ",In[i*dim+j]);
-    }
-    printf("\n");
-  }
-  printf("\n");
-}
-
-void print1DArray(double *In,int dim)
-{
-  int j;
-  for(j=0;j<dim;j++)
-  {
-    printf("%+5.2f ",In[j]);
-  }
-  printf("\n\n");
-}
-
-
 void dwt_row(double* In, double* Out, int len,int SP, int AL)
 {
   register int mid = len/2,i;
