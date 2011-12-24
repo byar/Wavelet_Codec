@@ -42,6 +42,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -65,6 +67,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -75,10 +78,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="arcoder.cpp" />
+    <ClCompile Include="FILTER.CC" />
+    <ClCompile Include="GLOBAL.CC" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="quantizer.cpp" />
     <ClCompile Include="stats.cpp" />
     <ClCompile Include="test.cpp" />
+    <ClCompile Include="WAVELET.CC" />
     <ClCompile Include="waveletlib.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +94,10 @@
     <ClInclude Include="test.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="waveletlib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GLOBAL.HH" />
+    <None Include="WAVELET.HH" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -33,6 +33,15 @@
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FILTER.CC">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GLOBAL.CC">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WAVELET.CC">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arcoder.h">
@@ -53,5 +62,13 @@
     <ClInclude Include="waveletlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WAVELET.HH">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="GLOBAL.HH">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

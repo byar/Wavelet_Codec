@@ -3,9 +3,12 @@
 #include <Windows.h>
 #include "types.h"
 #include "waveletlib.h"
-#define DAVIS_CODEC FALSE
+#define Nlen 2048
+#define pi 3.141592653589793
+#define DAVIS_CODEC TRUE
 #if DAVIS_CODEC==TRUE
 #include "WAVELET.HH"
+extern FilterSet Antonini;
 #endif
 double UpdateTime()
 {
@@ -43,10 +46,6 @@ void print1DArray(double *In,int dim)
   printf("\n\n");
 }
 
-#define Nlen 512
-#define pi 3.141592653589793
-//extern FilterSet Antonini;
-
 double V1[Nlen] = {0.0}; 
 double V2[Nlen] = {0.0};
 double V3[Nlen] = {0.0};
@@ -71,7 +70,7 @@ void WaveletTest()
   //***1D DWT performance test***//
   //*****************************//
   UpdateTime();
-  int Ntimes = 10;
+  int Ntimes = 1;
   for(i=0;i<Ntimes;i++)
   {
     V1[i]+=0.1;
@@ -140,7 +139,7 @@ void WaveletTest()
   
   printf("\nResults:\n");
   printf("1d_row  : my - %.2f%% %s\n",(tm_1d1>td_1d?tm_1d1/td_1d:td_1d/tm_1d1)*100,(tm_1d1>td_1d?"slower":"faster"));
-  printf("1d_row  : my - %.2f%% %s\n",(tm_1d2>td_1d?tm_1d2/td_1d:td_1d/tm_1d2)*100,(tm_1d2>td_1d?"slower":"faster"));
+  printf("1d_colon: my - %.2f%% %s\n",(tm_1d2>td_1d?tm_1d2/td_1d:td_1d/tm_1d2)*100,(tm_1d2>td_1d?"slower":"faster"));
   printf("2d_tr   : my - %.2f%% %s\n",(tm_2d1>td_2d?tm_2d1/td_2d:td_2d/tm_2d1)*100,(tm_2d1>td_2d?"slower":"faster"));
   printf("2d_no tr: my - %.2f%% %s\n",(tm_2d2>td_2d?tm_2d2/td_2d:td_2d/tm_2d2)*100,(tm_2d2>td_2d?"slower":"faster"));
 #endif

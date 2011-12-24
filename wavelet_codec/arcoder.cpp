@@ -48,7 +48,7 @@ void start_model(void)
 		{
 			update_model(char_to_index[0]);
 		}
-		for(int i=1;i<Nlevels/3;i+=2)
+		for(i=1;i<Nlevels/3;i+=2)
 		{
 			int Ncurr = (int)(Narr*exp(-pow(60*(double)i/Nlevels,0.7)));
 			for(int j=0;j<Ncurr;j++)

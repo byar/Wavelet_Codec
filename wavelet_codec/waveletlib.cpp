@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
+extern "C"
+{
 static const double H[] =  {  
    3.782845550699535e-02,
   -2.384946501937986e-02,
@@ -110,7 +113,7 @@ void dwt_colon(double* In, double* Out, int len, int SP, int AL)
   register int L = mid-2;
   register int I1;
   Out[0] =   In[4*AL]*H[0]+In[3*AL]*H[1]+In[2*AL]*H[2]+In[1*AL]*H[3]+In[0]*H[4]+In[1*AL]*H[5]+In[2*AL]*H[6]+In[3*AL]*H[7]+In[4*AL]*H[8];
-  Out[1*AL] =   In[2*AL]*H[0]+In[1*AL]*H[1]+In[0]*H[2]+In[1*AL]*H[3]+In[2*AL]*H[4]+In[3*AL]*H[5]+In[4*AL]*H[6]+In[5*AL]*H[7]+In[6*AL]*H[8];
+  Out[1*AL] =    In[2*AL]*H[0]+In[1*AL]*H[1]+In[0]*H[2]+In[1*AL]*H[3]+In[2*AL]*H[4]+In[3*AL]*H[5]+In[4*AL]*H[6]+In[5*AL]*H[7]+In[6*AL]*H[8];
   Out[mid*AL] = In[2*AL]*G[0]+In[1*AL]*G[1]+In[0]*G[2]+In[1*AL]*G[3]+In[2*AL]*G[4]+In[3*AL]*G[5]+In[4*AL]*G[6];
   Out[(mid+1)*AL] = In[0]*G[0]+In[1*AL]*G[1]+In[2*AL]*G[2]+In[3*AL]*G[3]+In[4*AL]*G[4]+In[5*AL]*G[5]+In[6*AL]*G[6];
 //  #pragma omp parallel for shared(Out, In, L,mid,H,G) private(i)
@@ -172,8 +175,9 @@ void idwt_colon(double* In, double* Out, int len, int SP, int AL)
 
 void wavedec(double* In, double* Out, int dim, int Level)
 {
-  //double *temp = (double*)malloc(dim*dim*sizeof(double));
-  double *temp = new double[dim*dim];
+  double *temp = (double*)malloc(dim*dim*sizeof(double));
+  assert(!temp);
+  //double *temp = new double[dim*dim];
   int i,j,k,Length = dim;
   double *tempIn = In;
   for(k=Level;k>0;--k)
@@ -208,14 +212,14 @@ void wavedec(double* In, double* Out, int dim, int Level)
     dim >>= 1;
     tempIn = Out;
   }
-  //free(temp);
-  delete[] temp;
+  free(temp);
+  //delete[] temp;
 }
 
 void waverec(double* In, double* Out, int dim, int Level)
 {
-  //double *temp = (double*)malloc(dim*dim*sizeof(double));
-  double *temp = new double[dim*dim];
+  double *temp = (double*)malloc(dim*dim*sizeof(double));
+  //double *temp = new double[dim*dim];
   int i,j,k, Length=dim;
   double *tempIn = In;
   memcpy(Out,In,Length*Length*sizeof(double));
@@ -250,15 +254,15 @@ void waverec(double* In, double* Out, int dim, int Level)
     dim <<= 1;
     tempIn = Out;
   }
-  //free(temp);
-  delete[] temp;
+  free(temp);
+  //delete[] temp;
 }
 
 void wavedecNOMEM(double* In, double* Out, int dim, int Level)
 {
   int i,j,Length = dim;
-  //double *temp = (double*)malloc(dim*dim*sizeof(double));
-  double *temp = new double[dim*dim];
+  double *temp = (double*)malloc(dim*dim*sizeof(double));
+  //double *temp = new double[dim*dim];
   double *tempIn = In;
   for(j=Level;j>0;--j)
   {
@@ -273,14 +277,14 @@ void wavedecNOMEM(double* In, double* Out, int dim, int Level)
     dim >>= 1;
     tempIn = Out;
   }
-  //free(temp);
-  delete[] temp;
+  free(temp);
+  //delete[] temp;
 }
 void waverecNOMEM(double* In, double* Out, int dim, int Level)
 {
   int i,j,Length = dim;
-  //double *temp = (double*)malloc(dim*dim*sizeof(double));
-  double *temp = new double[dim*dim];
+  double *temp = (double*)malloc(dim*dim*sizeof(double));
+  //double *temp = new double[dim*dim];
   double *tempIn = In;
   memcpy(Out,In,Length*Length*sizeof(double));
   dim >>= Level-1;
@@ -297,6 +301,7 @@ void waverecNOMEM(double* In, double* Out, int dim, int Level)
     dim <<= 1;
     tempIn = Out;
   }
-  //free(temp);
-  delete[] temp;
+  free(temp);
+  //delete[] temp;
 }
+}//extern "C"

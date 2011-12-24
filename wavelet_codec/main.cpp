@@ -4,6 +4,7 @@
 int main()
 {
   WaveletTest();
-  getchar();
+  int dummy = getchar();
+  (int)dummy;
   return 0;
 }
