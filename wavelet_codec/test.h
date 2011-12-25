@@ -4,6 +4,8 @@
 double UpdateTime();
 void print1DArray(double *In,int dim);
 void print2DArray(double *In,int dim);
+void InitTest();
 void WaveletTest();
+void WaveletPacketTest();
 
 #endif //#ifndef _TEST__H_

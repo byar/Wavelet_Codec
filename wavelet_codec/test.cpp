@@ -3,13 +3,23 @@
 #include <Windows.h>
 #include "types.h"
 #include "waveletlib.h"
-#define Nlen 2048
-#define pi 3.141592653589793
-#define DAVIS_CODEC TRUE
-#if DAVIS_CODEC==TRUE
+#pragma comment(lib, "user32.lib")
+#define OPENCV
+#ifdef OPENCV
+#include "opencv2/opencv.hpp"
+//#include "opencv/cv.h"
+//#include "opencv/highgui.h"
+#endif
+
+#define DAVIS_CODEC
+#ifdef DAVIS_CODEC
 #include "WAVELET.HH"
 extern FilterSet Antonini;
 #endif
+
+#define Nlen 512
+#define pi 3.141592653589793
+
 double UpdateTime()
 {
   double deltaTime;
@@ -46,25 +56,60 @@ void print1DArray(double *In,int dim)
   printf("\n\n");
 }
 
+void ShowArray(double *Orig, double *Dec, double* Rec,int Dim)
+{
+  cv::Mat frameOrig(Dim,Dim,CV_64F,Orig);
+  //cv::Mat frameOrig(Dim,Dim,CV_64F);
+  //memcpy(frameOrig.data,Orig,Dim*Dim*sizeof(double));
+  cv::Mat frameDec(Dim,Dim,CV_64F,Dec);
+  cv::Mat frameRec(Dim,Dim,CV_64F,Rec);
+  uint32 dwWidth = GetSystemMetrics(SM_CXSCREEN);
+  uint32 dwHeight = GetSystemMetrics(SM_CYSCREEN);
+  printf("start draw %d %d\n",dwWidth,dwHeight);
+  cv::imshow("Orig", frameOrig);
+  cv::imshow("Decomposition", (frameDec)*30);
+  cv::imshow("Reconstruction", frameRec);
+  cv::imshow("Difference", (1000000*(frameOrig-frameRec)));
+  cvMoveWindow("Orig",0,0);
+  cvMoveWindow("Decomposition",dwWidth/2,0);
+  cvMoveWindow("Reconstruction",0,dwHeight/2);
+  cvMoveWindow("Difference",dwWidth/2,dwHeight/2);
+  cvWaitKey();
+  cvDestroyWindow("Orig");
+  cvDestroyWindow("Decomposition");
+  cvDestroyWindow("Reconstruction");
+  cvDestroyWindow("Difference");
+  printf("end draw\n");
+}
+
 double V1[Nlen] = {0.0}; 
 double V2[Nlen] = {0.0};
 double V3[Nlen] = {0.0};
 double V4[Nlen*Nlen] = {0.0};
 double V5[Nlen*Nlen] = {0.0};
 double V6[Nlen*Nlen] = {0.0};
-void WaveletTest()
+
+void InitTest()
 {
   int i,j;
   for(i=0;i<Nlen;i++)
   {
     V1[i] = sin((double)(i)/100*pi);
   }
-
+  cv::Mat Image = cv::imread("D:/lena512.bmp",CV_LOAD_IMAGE_GRAYSCALE);
+  printf("WTF: %d %d %d\n",Image.size().width,Image.size().height,Image.step);
+  //Image.convertTo(Image,CV_64F);
   for(i=0;i<Nlen;i++)
   for(j=0;j<Nlen;j++)
   {
-    V4[i*Nlen+j] = sin((double)(i+2*j)/100*pi);
+    //V4[i*Nlen+j] = cos((double)(2*i+j)/100*pi)+sin((double)(i+2*j)/100*pi);
+    V4[i*Nlen+j] = (double)Image.data[Nlen*i+j]/255;
   }
+}
+
+void WaveletTest()
+{
+  int i;
 
   //*****************************//
   //***1D DWT performance test***//
@@ -114,7 +159,7 @@ void WaveletTest()
   double tm_2d2 = UpdateTime()/Ntimes;
   printf("No transpose:   Elapsed: %f s; %+f %+f %+f\n",tm_2d2,V4[Nlen*5+Nlen/4],V5[Nlen*5+Nlen/4],V6[Nlen*5+Nlen/4]);
 
-#if DAVIS_CODEC==TRUE
+#ifdef DAVIS_CODEC
   Wavelet wav(&Antonini);
 
   UpdateTime();
@@ -144,4 +189,13 @@ void WaveletTest()
   printf("2d_no tr: my - %.2f%% %s\n",(tm_2d2>td_2d?tm_2d2/td_2d:td_2d/tm_2d2)*100,(tm_2d2>td_2d?"slower":"faster"));
 #endif
   //*****************************//
+}
+
+void WaveletPacketTest()
+{
+  wpfulldec2(V4,V5,Nlen,4);
+  wpfullrec2(V5,V6,Nlen,4);
+  //wavedec(V4,V5,Nlen,4);
+  //waverec(V5,V6,Nlen,4);
+  ShowArray(V4,V5,V6,Nlen);
 }

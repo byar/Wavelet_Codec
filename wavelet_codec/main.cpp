@@ -3,8 +3,9 @@
 
 int main()
 {
-  WaveletTest();
-  int dummy = getchar();
-  (int)dummy;
+  InitTest();
+  WaveletPacketTest();
+  //int dummy = getchar();
+  //(int)dummy;
   return 0;
 }

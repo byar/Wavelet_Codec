@@ -1,10 +1,11 @@
-#include "waveletlib.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-extern "C"
-{
+#include "opencv2\opencv.hpp"
+#include "waveletlib.h"
+#include "test.h"
+
 static const double H[] =  {  
    3.782845550699535e-02,
   -2.384946501937986e-02,
@@ -17,13 +18,13 @@ static const double H[] =  {
    3.782845550699535e-02 
 };
 static const double H1[] = {
-  -6.453888262869706e-002,
-  -4.068941760916406e-002,
-   4.180922732216172e-001,
-   7.884856164055829e-001,
-   4.180922732216172e-001,
-  -4.068941760916406e-002,
-  -6.453888262869706e-002
+  -6.453888262869706e-02,
+  -4.068941760916406e-02,
+   4.180922732216172e-01,
+   7.884856164055829e-01,
+   4.180922732216172e-01,
+  -4.068941760916406e-02,
+  -6.453888262869706e-02
 };
 static const double G[] = {
   -6.453888262893856e-02, //-2
@@ -172,14 +173,15 @@ void idwt_colon(double* In, double* Out, int len, int SP, int AL)
   */
 }
 
-
 void wavedec(double* In, double* Out, int dim, int Level)
 {
   double *temp = (double*)malloc(dim*dim*sizeof(double));
-  assert(!temp);
   //double *temp = new double[dim*dim];
   int i,j,k,Length = dim;
   double *tempIn = In;
+  assert(temp);
+  assert(In);
+  assert(Out);
   for(k=Level;k>0;--k)
   {
     for(i=0;i<dim;i++)
@@ -222,6 +224,9 @@ void waverec(double* In, double* Out, int dim, int Level)
   //double *temp = new double[dim*dim];
   int i,j,k, Length=dim;
   double *tempIn = In;
+  assert(temp);
+  assert(In);
+  assert(Out);
   memcpy(Out,In,Length*Length*sizeof(double));
   dim >>= Level-1;
   for(k=Level;k>0;--k)
@@ -264,6 +269,9 @@ void wavedecNOMEM(double* In, double* Out, int dim, int Level)
   double *temp = (double*)malloc(dim*dim*sizeof(double));
   //double *temp = new double[dim*dim];
   double *tempIn = In;
+  assert(temp);
+  assert(In);
+  assert(Out);
   for(j=Level;j>0;--j)
   {
     for(i=0;i<dim;i++)
@@ -280,10 +288,14 @@ void wavedecNOMEM(double* In, double* Out, int dim, int Level)
   free(temp);
   //delete[] temp;
 }
+
 void waverecNOMEM(double* In, double* Out, int dim, int Level)
 {
   int i,j,Length = dim;
   double *temp = (double*)malloc(dim*dim*sizeof(double));
+  assert(temp);
+  assert(In);
+  assert(Out);
   //double *temp = new double[dim*dim];
   double *tempIn = In;
   memcpy(Out,In,Length*Length*sizeof(double));
@@ -304,4 +316,156 @@ void waverecNOMEM(double* In, double* Out, int dim, int Level)
   free(temp);
   //delete[] temp;
 }
-}//extern "C"
+
+void wpfulldec2(double* In, double* Out, int dim, int Level)
+{
+  double *temp = (double*)malloc(dim*dim*sizeof(double));
+  //double *temp = new double[dim*dim];
+  int i,j,k,m,n,p,Length = dim;
+  double *tempIn = In;
+  assert(temp);
+  assert(In);
+  assert(Out);
+  cv::Mat frame(dim,dim,CV_64F);
+  uchar* PushedData = frame.data;
+  p=0;
+  for(k=Level;k>0;--k)
+  {
+    int DecTimes = 1<<(Level-k);
+    for(m=0; m < DecTimes; ++m)
+    for(n=0; n < DecTimes; ++n)
+    {
+      int Ycurr = dim*m;
+      int Xcurr = dim*n;
+
+      printf("(%d,%d) - %d\n",Xcurr,Ycurr,dim);
+      for(i=0;i<dim;i++)
+      {
+        dwt_row(tempIn+(Ycurr+i)*Length+Xcurr,temp+(Ycurr+i)*Length+Xcurr,dim,0,Length);
+      }
+      //frame.data =reinterpret_cast<uchar*>(temp);
+      //cv::imshow("DEBUG1", 30*frame);
+      //printf("%d\n",++p);
+      //cv::waitKey();
+
+      //Transpose1
+      for(i=0;i<Length;++i)
+      {
+        for(j=0;j<Length;j++)
+        {
+          Out[i*Length+j] = temp[j*Length+i];
+        }
+      }    
+      memcpy(temp,Out,Length*Length*sizeof(double));
+
+
+      for(i=0;i<dim;i++)
+      {
+        dwt_row(Out+(Xcurr+i)*Length+Ycurr,temp+(Xcurr+i)*Length+Ycurr,dim,0,Length);
+      }
+      //frame.data =reinterpret_cast<uchar*>(temp);
+      //cv::imshow("DEBUG2", 30*frame);
+      //printf("%d\n",++p);
+      //cv::waitKey();
+      //Transpose2
+      for(i=0;i<Length;++i)
+      {
+        for(j=0;j<Length;j++)
+        {
+          Out[i*Length+j] = temp[j*Length+i];
+        }
+      }
+      memcpy(temp,Out,Length*Length*sizeof(double));
+
+      //frame.data =reinterpret_cast<uchar*>(Out);
+      //cv::imshow("FINAL", 30*frame);
+      //printf("%d\n",++p);
+      //cv::waitKey();
+      tempIn = Out;
+    }
+    
+      dim >>= 1;
+  }
+  frame.data = PushedData;
+  free(temp);
+  //delete[] temp;
+}
+
+void wpfullrec2(double* In, double* Out, int dim, int Level)
+{
+  double *temp = (double*)malloc(dim*dim*sizeof(double));
+  //double *temp = new double[dim*dim];
+  int i,j,k,m,n,p,Length = dim;
+  double *tempIn = In;
+  assert(temp);
+  assert(In);
+  assert(Out);
+  cv::Mat frame(dim,dim,CV_64F);
+  uchar* PushedData = frame.data;
+  p=0;
+  dim >>= Level-1;
+  for(k=Level;k>0;--k)
+  {
+    int DecTimes = 1<<(k-1);
+    for(m=0; m < DecTimes; ++m)
+    for(n=0; n < DecTimes; ++n)
+    {
+      int Ycurr = dim*m;
+      int Xcurr = dim*n;
+      printf("(%d,%d) - %d\n",Xcurr,Ycurr,dim);
+      //Transpose1
+
+      //frame.data =reinterpret_cast<uchar*>(tempIn);
+      //cv::imshow("DEBUG1", frame);
+      //printf("%d\n",++p);
+      //cv::waitKey();
+
+      for(i=0;i<Length;++i)
+      {
+        for(j=0;j<Length;j++)
+        {
+          temp[i*Length+j] = tempIn[j*Length+i];
+        }
+      }    
+      memcpy(Out,temp,Length*Length*sizeof(double));
+
+      for(i=0;i<dim;i++)
+      {
+        idwt_row(temp+(Ycurr+i)*Length+Xcurr,Out+(Ycurr+i)*Length+Xcurr,dim,0,Length);
+      }
+
+
+      //frame.data =reinterpret_cast<uchar*>(Out);
+      //cv::imshow("DEBUG2", frame);
+      //printf("%d\n",++p);
+      //cv::waitKey();
+      //Transpose2
+
+      for(i=0;i<Length;++i)
+      {
+        for(j=0;j<Length;j++)
+        {
+          temp[i*Length+j] = Out[j*Length+i];
+        }
+      }
+      memcpy(Out,temp,Length*Length*sizeof(double));
+
+
+      for(i=0;i<dim;i++)
+      {
+        idwt_row(temp+(Xcurr+i)*Length+Ycurr,Out+(Xcurr+i)*Length+Ycurr,dim,0,Length);
+      }
+
+      //frame.data =reinterpret_cast<uchar*>(Out);
+      //cv::imshow("FINAL", frame);
+      //printf("%d\n",++p);
+      //cv::waitKey();
+      tempIn = Out;
+    }
+    
+      dim <<= 1;
+  }
+  frame.data = PushedData;
+  free(temp);
+  //delete[] temp;
+}
