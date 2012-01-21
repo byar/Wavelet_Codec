@@ -7,5 +7,6 @@ void print2DArray(double *In,int dim);
 void InitTest();
 void WaveletTest();
 void WaveletPacketTest();
+void intrinsicTest();
 
 #endif //#ifndef _TEST__H_

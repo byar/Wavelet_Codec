@@ -4,7 +4,9 @@
 int main()
 {
   InitTest();
-  WaveletPacketTest();
+  //WaveletPacketTest();
+  WaveletTest();
+  //intrinsicTest();
   //int dummy = getchar();
   //(int)dummy;
   return 0;

@@ -10,4 +10,10 @@ typedef signed int int32;
 typedef unsigned long long uint64;
 typedef signed long long int64;
 
+#ifdef AVX 
+#define SIMDALIGN __declspec(align(32))
+#elif defined SSE2PLUS
+#define SIMDALIGN __declspec(align(16))
+#endif
+
 #endif //#ifndef _TEST__H_

@@ -2,11 +2,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "config.h"
+#include <immintrin.h>
 #include "opencv2\opencv.hpp"
 #include "waveletlib.h"
 #include "test.h"
+#include "types.h"
 
-static const double H[] =  {  
+static const double SIMDALIGN H[] =  {  
    3.782845550699535e-02,
   -2.384946501937986e-02,
   -1.106244044184226e-01,
@@ -15,27 +18,29 @@ static const double H[] =  {
    3.774028556126537e-01,
   -1.106244044184226e-01,
   -2.384946501937986e-02,
-   3.782845550699535e-02 
+   3.782845550699535e-02
 };
-static const double H1[] = {
+static const double SIMDALIGN H1[] = {
   -6.453888262869706e-02,
   -4.068941760916406e-02,
    4.180922732216172e-01,
    7.884856164055829e-01,
    4.180922732216172e-01,
   -4.068941760916406e-02,
-  -6.453888262869706e-02
+  -6.453888262869706e-02,
+  0
 };
-static const double G[] = {
+static const double SIMDALIGN G[] = {
   -6.453888262893856e-02, //-2
    4.068941760955867e-02,
    4.180922732222124e-01,
   -7.884856164056651e-01,
    4.180922732222124e-01,
    4.068941760955867e-02,
-  -6.453888262893856e-02  // 4
+  -6.453888262893856e-02,
+   0  // 4
 };
-static const double G1[] = {
+static const double SIMDALIGN G1[] = {
   -3.782845550699535e-02, //-3
   -2.384946501937986e-02,
    1.106244044184226e-01,
@@ -73,6 +78,88 @@ void dwt_row(double* In, double* Out, int len,int SP, int AL)
   1.886053  4.346256  7.071068  9.899495 12.727922        15.556349 18.384776 21.213203 23.965974 26.959734
  -0.176777 -0.000000 -0.000000 -0.000000  0.000000        -0.000000 -0.000000 -0.000000  0.129078 -0.611709
   */
+}
+
+void dwt_row_simd(double* In, double* Out, int len,int SP, int AL)
+{
+  register int mid = len/2,i;
+  register int L = mid-2;
+  register int I1;
+  In = In+0;
+  Out = Out+0;
+  Out[0] =   In[4]*H[0]+In[3]*H[1]+In[2]*H[2]+In[1]*H[3]+In[0]*H[4]+In[1]*H[5]+In[2]*H[6]+In[3]*H[7]+In[4]*H[8];
+  Out[1] =   In[2]*H[0]+In[1]*H[1]+In[0]*H[2]+In[1]*H[3]+In[2]*H[4]+In[3]*H[5]+In[4]*H[6]+In[5]*H[7]+In[6]*H[8];
+  Out[mid] = In[2]*G[0]+In[1]*G[1]+In[0]*G[2]+In[1]*G[3]+In[2]*G[4]+In[3]*G[5]+In[4]*G[6];
+  Out[mid+1] = In[0]*G[0]+In[1]*G[1]+In[2]*G[2]+In[3]*G[3]+In[4]*G[4]+In[5]*G[5]+In[6]*G[6];
+  //#pragma omp parallel for shared(Out, In, L,mid,H,G) private(i)
+  for(i=2; i<L; ++i)
+  {
+    I1 = 2*i;
+    double *pIN = In+I1;
+    fast_mul9(pIN-4,Out+i,H);
+    fast_mul8(pIN-2,Out+mid+i,H);
+  }
+  Out[mid-2] = In[len-8]*H[0]+In[len-7]*H[1]+In[len-6]*H[2]+In[len-5]*H[3]+In[len-4]*H[4]+In[len-3]*H[5]+In[len-2]*H[6]+In[len-1]*H[7]+In[len-2]*H[8];
+  Out[mid-1] = In[len-6]*H[0]+In[len-5]*H[1]+In[len-4]*H[2]+In[len-3]*H[3]+In[len-2]*H[4]+In[len-1]*H[5]+In[len-2]*H[6]+In[len-3]*H[7]+In[len-4]*H[8];
+  Out[len-2] = In[len-6]*G[0]+In[len-5]*G[1]+In[len-4]*G[2]+In[len-3]*G[3]+In[len-2]*G[4]+In[len-1]*G[5]+In[len-2]*G[6];
+  Out[len-1] = In[len-4]*G[0]+In[len-3]*G[1]+In[len-2]*G[2]+In[len-1]*G[3]+In[len-2]*G[4]+In[len-3]*G[5]+In[len-4]*G[6];
+  /*
+  1.886053  4.346256  7.071068  9.899495 12.727922        15.556349 18.384776 21.213203 23.965974 26.959734
+ -0.176777 -0.000000 -0.000000 -0.000000  0.000000        -0.000000 -0.000000 -0.000000  0.129078 -0.611709
+  */
+}
+
+void fast_mul9(const double* In,double *Out, const double* IR)
+{
+  //static double Out[4];
+#ifdef SSE2PLUS
+  __m128d A = _mm_load_pd(In);
+  __m128d B = _mm_load_pd(IR);
+  __m128d C = _mm_mul_pd(A,B);
+  __m128d D = C;
+  A = _mm_load_pd(In+2);
+  B = _mm_load_pd(IR+2);
+  C = _mm_mul_pd(A,B);
+  D = _mm_add_pd(D,C);
+  A = _mm_load_pd(In+4);
+  B = _mm_load_pd(IR+4);
+  C = _mm_mul_pd(A,B);
+  D = _mm_add_pd(D,C);
+  A = _mm_load_pd(In+6);
+  B = _mm_load_pd(IR+6);
+  C = _mm_mul_pd(A,B);
+  D = _mm_add_pd(D,C);
+  _mm_store_pd(Out,D);
+  *Out = Out[0]+Out[1] + In[8]*IR[8];
+#elif defined(AVX)
+  __m256d InData1 =  _mm256_loadu_pd(In);
+  __m256d IRdata1 =  _mm256_loadu_pd(IR);
+  __m256d Out1 = _mm256_mul_pd(InData1,IRdata1);
+  __m256d InData2 =  _mm256_loadu_pd(In+4);
+  __m256d IRdata2 =  _mm256_loadu_pd(IR+4);
+  __m256d Out2 = _mm256_mul_pd(InData2,IRdata2);
+  Out1 = _mm256_add_pd(Out1,Out2);
+  Out1 = _mm256_hadd_pd(Out1,Out1);
+  _mm256_storeu_pd(Out,_mm256_add_pd(Out1,_mm256_permute2f128_pd(Out1,Out1, 0x01)));
+  *Out +=  In[8]*IR[8];
+#endif
+}
+
+void fast_mul8(const double* In, double* Out, const double* IR)
+{
+#ifdef SSE2PLUS
+#error NOT IMPLEMENTED YET
+#elif defined(AVX)
+__m256d InData1 =  _mm256_loadu_pd(In);
+  __m256d IRdata1 =  _mm256_loadu_pd(IR);
+  __m256d Out1 = _mm256_mul_pd(InData1,IRdata1);
+  __m256d InData2 =  _mm256_loadu_pd(In+4);
+  __m256d IRdata2 =  _mm256_loadu_pd(IR+4);
+  __m256d Out2 = _mm256_mul_pd(InData2,IRdata2);
+  Out1 = _mm256_add_pd(Out1,Out2);
+  Out1 = _mm256_hadd_pd(Out1,Out1);
+  _mm256_storeu_pd(Out,_mm256_add_pd(Out1,_mm256_permute2f128_pd(Out1,Out1, 0x01)));
+#endif
 }
 
 void idwt_row(double* In, double* Out, int len,int SP, int AL)
